@@ -65,8 +65,8 @@ def main():
         if type(img_rgb) != list and type(img_depth) != list:
             #Combine Images
             img_comb = np.zeros((h,2*w,3), np.uint8)
-            img_comb[:h,:w] = img_rgb
-            img_comb[:h,w:w+w] = img_depth
+            img_comb[:h,:w] = img_depth
+            img_comb[:h,w:w+w] = img_rgb
 
             cv2.imshow("test",img_comb)
 
