@@ -2,6 +2,7 @@
 import rospy
 import cv2
 import numpy as np
+import argparse
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import time
@@ -33,14 +34,29 @@ def callback_rgb(data):
         
 
 def main():
+    arg_fmt = argparse.RawDescriptionHelpFormatter
+    parser = argparse.ArgumentParser(formatter_class=arg_fmt)
+    parser.add_argument(
+        '--rate', '-r', required=False, type = float,
+        default = 10.0, 
+        help='Specifies the collection rate in Hz. (Defaults to 10Hz)'
+    )
+    parser.add_argument(
+        '--outDir', '-o', required=False, type = str,
+        default = 'out/img',
+        help="Specifies the output location. (Defaults to 'out/img')"
+    )
+    args = parser.parse_args(rospy.myargv()[1:])
+
+
     rospy.init_node("depth2Image")
 
     rospy.Subscriber("/camera/rgb/image_raw", Image, callback_rgb)
     rospy.Subscriber("/camera/depth/image_rect_raw", Image, callback_depth)
     w,h = 640, 480
 
-    batchLocation = "data/img"
-    saveDelay = 1 / 10.0 #10Hz
+    batchLocation = args.outDir
+    saveDelay = 1.0 / args.rate
 
     lastSave = 0.0
     imgNumber = 0
@@ -56,7 +72,7 @@ def main():
 
             if time.time() - lastSave > saveDelay:
                 #Save Image
-                saveDelay = time.time()
+                lastSave = time.time()
                 fname = batchLocation + str(imgNumber).zfill(4) + ".png"
                 cv2.imwrite(fname , img_comb)
                 imgNumber += 1
